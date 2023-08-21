@@ -1,6 +1,7 @@
 import dotenv
 import os
 import json
+import re
 from message import Message
 
 dotenv.load_dotenv()
@@ -28,8 +29,25 @@ def load_messages_from_directory(directory):
                 except ValueError as e:
                     print(f"Error loading message: {msg_data}")
 
-    return all_messages, text_messages
+    return sorted(all_messages), sorted(text_messages)
+
+def clean_and_filter_messages(messages, min_words=3):
+    # Filters to remove common system messages
+    filter_photo = re.compile("changed the group's photo", re.I)
+    filter_reacted = re.compile("reacted .* to your message", re.I)
+    
+    cleaned_messages = []
+
+    for message in messages:
+        if not (filter_photo.search(message.content) or filter_reacted.search(message.content)):
+            if len(message.content.split()) > min_words:  # Check if message has more than min_words words
+                cleaned_messages.append(message)
+
+    return cleaned_messages
 
 messages, text_messages = load_messages_from_directory(messages_folder)
 print(len(messages), len(text_messages))
 print(messages[0])
+
+cleaned_text_messages = clean_and_filter_messages(text_messages)
+print(len(cleaned_text_messages))
