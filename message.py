@@ -12,6 +12,7 @@ class Message:
         self.sender = sender
         self.timestamp = timestamp
         self.message_type = 'unknown'
+        self.content = None
 
     @classmethod
     def from_json(cls, msg_data):
