@@ -1,6 +1,7 @@
 from data_load import load_messages_from_directory, clean_and_filter_messages
 import dotenv
 import os
+import torch
 
 dotenv.load_dotenv()
 

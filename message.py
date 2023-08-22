@@ -1,15 +1,22 @@
 from datetime import datetime, timezone, timedelta
 from functools import total_ordering
+import os
+import dotenv
+
+dotenv.load_dotenv()
 
 @total_ordering
 class Message:
-    VALID_SENDERS = ["Tindell Lockett", "Peter Forsee", "Ben Thomas", "Dan Thomas", "Bryson Lockett"]
+    VALID_SENDERS = os.getenv("VALID_SENDERS").split(",")
+    SENDER_INITIALS = [''.join(name[0] for name in full_name.split()) for full_name in VALID_SENDERS]
 
     def __init__(self, sender, timestamp):
+        sender_initials = ''.join(name[0] for name in sender.split())
+
         if sender not in self.VALID_SENDERS:
             raise ValueError(f"Invalid sender: {sender}. Must be one of {', '.join(self.VALID_SENDERS)}.")
 
-        self.sender = sender
+        self.sender = sender_initials
         self.timestamp = timestamp
         self.message_type = 'unknown'
         self.content = None
@@ -19,7 +26,7 @@ class Message:
         # Lazily import the required message types
         from text_message import TextMessage
         from multimedia_message import MultimediaMessage
-        
+
         # Factory method to determine message type and create an instance
         if 'content' in msg_data:
             return TextMessage(msg_data['sender_name'], msg_data['timestamp_ms'], msg_data['content'])

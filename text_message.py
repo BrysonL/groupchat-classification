@@ -24,8 +24,8 @@ class TextMessage(Message):
         Returns a one-hot encoded vector representing the sender using torch.
         """
         # Using torch for numerical operations
-        vector = torch.zeros(len(self.VALID_SENDERS))
-        sender_index = self.VALID_SENDERS.index(self.sender)
+        vector = torch.zeros(len(self.SENDER_INITIALS))
+        sender_index = self.SENDER_INITIALS.index(self.sender)
         vector[sender_index] = 1
         return vector
 
