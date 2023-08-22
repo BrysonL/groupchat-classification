@@ -16,6 +16,10 @@ class Message:
 
     @classmethod
     def from_json(cls, msg_data):
+        # Lazily import the required message types
+        from text_message import TextMessage
+        from multimedia_message import MultimediaMessage
+        
         # Factory method to determine message type and create an instance
         if 'content' in msg_data:
             return TextMessage(msg_data['sender_name'], msg_data['timestamp_ms'], msg_data['content'])
@@ -58,37 +62,3 @@ class Message:
         if not isinstance(other, Message):
             return NotImplemented
         return self.timestamp < other.timestamp
-
-class TextMessage(Message):
-    def __init__(self, sender_name, timestamp_ms, content):
-        super().__init__(sender_name, timestamp_ms)
-        self.content = content
-        self.message_type = "text"
-
-    def __str__(self):
-        est = timezone(timedelta(hours=-5))
-        # Convert from milliseconds to seconds and then to a datetime object
-        dt = datetime.fromtimestamp(self.timestamp / 1000, tz=timezone.utc).astimezone(est)
-        formatted_time = dt.strftime('%B %d, %Y %I:%M.%S %p %Z')
-        return (
-            f"Sender: {self.sender}\n"
-            f"Timestamp: {formatted_time}\n"
-            f"Message: {self.content}"
-        )
-
-class MultimediaMessage(Message):
-    def __init__(self, sender_name, timestamp_ms, content, message_type):
-        super().__init__(sender_name, timestamp_ms)
-        self.content = content
-        self.message_type = message_type
-
-    def __str__(self):
-        est = timezone(timedelta(hours=-5))
-        # Convert from milliseconds to seconds and then to a datetime object
-        dt = datetime.fromtimestamp(self.timestamp / 1000, tz=timezone.utc).astimezone(est)
-        formatted_time = dt.strftime('%B %d, %Y %I:%M.%S %p %Z')
-        return (
-            f"Sender: {self.sender}\n"
-            f"Timestamp: {formatted_time}\n"
-            f"Content path: {self.content}"
-        )

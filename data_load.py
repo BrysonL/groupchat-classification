@@ -3,11 +3,8 @@ import os
 import json
 import re
 from message import Message
-
-dotenv.load_dotenv()
-
-messages_folder = os.getenv("MESSAGES_FOLDER_PATH")
-print(messages_folder)
+from text_message import TextMessage
+from multimedia_message import MultimediaMessage
 
 def load_messages_from_directory(directory):
     all_messages = []
@@ -40,14 +37,7 @@ def clean_and_filter_messages(messages, min_words=3):
 
     for message in messages:
         if not (filter_photo.search(message.content) or filter_reacted.search(message.content)):
-            if len(message.content.split()) > min_words:  # Check if message has more than min_words words
+            if len(message.content.split()) >= min_words:  # Check if message has more than min_words words
                 cleaned_messages.append(message)
 
     return cleaned_messages
-
-messages, text_messages = load_messages_from_directory(messages_folder)
-print(len(messages), len(text_messages))
-print(messages[0])
-
-cleaned_text_messages = clean_and_filter_messages(text_messages)
-print(len(cleaned_text_messages))
