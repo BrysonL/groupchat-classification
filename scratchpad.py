@@ -1,5 +1,6 @@
 from data_load import load_messages_from_directory, clean_and_filter_messages
 from classifier_evaluator import ClassifierEvaluator
+from most_frequent_classifier import MostFrequentClassClassifier
 import dotenv
 import os
 import torch
@@ -10,28 +11,37 @@ messages_folder = os.getenv("MESSAGES_FOLDER_PATH")
 print(messages_folder)
 
 messages, text_messages = load_messages_from_directory(messages_folder)
-print(len(messages), len(text_messages))
-print(messages[0])
+# print(len(messages), len(text_messages))
+# print(messages[0])
 
-cleaned_text_messages = clean_and_filter_messages(text_messages)
-print(len(cleaned_text_messages))
+# cleaned_text_messages = clean_and_filter_messages(text_messages)
+# print(len(cleaned_text_messages))
 
-msg = cleaned_text_messages[4]
-sender_vector = msg.get_sender_vector()
-message_features = msg.extract_features()
+# msg = cleaned_text_messages[4]
+# sender_vector = msg.get_sender_vector()
+# message_features = msg.extract_features()
 
-print(sender_vector)
-print(message_features)
+# print(sender_vector)
+# print(message_features)
 
 ce = ClassifierEvaluator(3)
 
-y_test = torch.zeros(100, 3)
-indices = torch.randint(0, 3, (100,))
-y_test[torch.arange(100), indices] = 1
+# y_test = torch.zeros(100, 3)
+# indices = torch.randint(0, 3, (100,))
+# y_test[torch.arange(100), indices] = 1
 
-yhat_test = torch.rand(100, 3)
+# yhat_test = torch.rand(100, 3)
  
-# print(y_test)
-# print(yhat_test)
+# # print(y_test)
+# # print(yhat_test)
 
-print(ce.evaluate(y_test, yhat_test))
+# print(ce.evaluate(y_test, yhat_test))
+
+num_classes = 3
+mf_classifier = MostFrequentClassClassifier(num_classes)
+train_labels = torch.tensor([[1, 0, 0], [1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 1], [0, 1, 0], [0, 0, 1]])
+mf_classifier.train_model(None, train_labels)
+yhat = mf_classifier.predict(["sample1", "sample2", "sample3"])
+y = torch.tensor([[1, 0, 0], [0, 1, 0], [1, 0, 0]])
+
+print(ce.evaluate(y, yhat))

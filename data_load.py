@@ -1,10 +1,8 @@
-import dotenv
 import os
 import json
 import re
 from message import Message
-from text_message import TextMessage
-from multimedia_message import MultimediaMessage
+import random
 
 def load_messages_from_directory(directory):
     all_messages = []
@@ -41,3 +39,26 @@ def clean_and_filter_messages(messages, min_words=3):
                 cleaned_messages.append(message)
 
     return cleaned_messages
+
+
+def split_data(data, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=None):
+    # Assert that the ratios sum to 1
+    assert train_ratio + val_ratio + test_ratio == 1.0, "Ratios must sum to 1."
+
+    # Seed the random number generator for reproducibility
+    if seed is not None:
+        random.seed(seed)
+
+    # Shuffle the data
+    random.shuffle(data)
+
+    # Calculate split indices
+    train_idx = int(len(data) * train_ratio)
+    val_idx = train_idx + int(len(data) * val_ratio)
+
+    # Split the data
+    train_data = data[:train_idx]
+    val_data = data[train_idx:val_idx]
+    test_data = data[val_idx:]
+
+    return train_data, val_data, test_data

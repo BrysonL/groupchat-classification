@@ -20,6 +20,7 @@ class Message:
 
         # Use the index to find the corresponding alias
         self.sender = self.SENDER_ALIASES[sender_idx]
+        self.sender_idx = sender_idx # Store the index for creating one-hot vectors
         self.timestamp = timestamp
         self.message_type = 'unknown'
         self.content = None
