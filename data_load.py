@@ -3,6 +3,7 @@ import json
 import re
 from message import Message
 import random
+import torch
 
 def load_messages_from_directory(directory):
     all_messages = []
@@ -62,3 +63,12 @@ def split_data(data, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=None):
     test_data = data[val_idx:]
 
     return train_data, val_data, test_data
+
+def extract_features_and_labels(messages):
+    features_list = [msg.extract_features() for msg in messages]
+    features_tensor = torch.stack(features_list)
+
+    sender_vectors = [msg.get_sender_vector() for msg in messages]
+    sender_vectors_tensor = torch.stack(sender_vectors)
+
+    return features_tensor, sender_vectors_tensor
