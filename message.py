@@ -8,15 +8,18 @@ dotenv.load_dotenv()
 @total_ordering
 class Message:
     VALID_SENDERS = os.getenv("VALID_SENDERS").split(",")
-    SENDER_INITIALS = [''.join(name[0] for name in full_name.split()) for full_name in VALID_SENDERS]
+    SENDER_ALIASES = os.getenv("SENDER_ALIASES").split(",")
 
     def __init__(self, sender, timestamp):
-        sender_initials = ''.join(name[0] for name in sender.split())
-
+        # Check if the sender is valid
         if sender not in self.VALID_SENDERS:
             raise ValueError(f"Invalid sender: {sender}. Must be one of {', '.join(self.VALID_SENDERS)}.")
 
-        self.sender = sender_initials
+        # Find the index of the sender in VALID_SENDERS
+        sender_idx = self.VALID_SENDERS.index(sender)
+
+        # Use the index to find the corresponding alias
+        self.sender = self.SENDER_ALIASES[sender_idx]
         self.timestamp = timestamp
         self.message_type = 'unknown'
         self.content = None
