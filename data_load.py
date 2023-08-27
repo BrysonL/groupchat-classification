@@ -27,7 +27,7 @@ def load_messages_from_directory(directory):
 
     return sorted(all_messages), sorted(text_messages)
 
-def clean_and_filter_messages(messages, min_words=3):
+def clean_and_filter_messages(messages, min_words=1, max_length=1401):
     # Filters to remove common system messages
     filter_photo = re.compile("changed the group's photo", re.I)
     filter_reacted = re.compile("reacted .* to your message", re.I)
@@ -38,8 +38,11 @@ def clean_and_filter_messages(messages, min_words=3):
         if not (filter_photo.search(message.content) or filter_reacted.search(message.content)):
             if len(message.content.split()) >= min_words:  # Check if message has more than min_words words
                 cleaned_messages.append(message)
-
-    return cleaned_messages
+        if len(message.content) > max_length:
+            message.content = message.content[:max_length] # Truncate messages longer than 1401 characters - this only impacts 3 out of 56k messages in my dataset
+            # print(f"Truncated message from {self.sender} at {datetime.fromtimestamp(self.timestamp / 1000, tz=timezone.utc).astimezone(timezone(timedelta(hours=-5))) } with length {len(content)} and content: {content}")
+            
+    return sorted(cleaned_messages)
 
 
 def split_data(data, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=None):
@@ -65,7 +68,11 @@ def split_data(data, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=None):
     return train_data, val_data, test_data
 
 def extract_features_and_labels(messages):
-    features_list = [msg.extract_features() for msg in messages]
+    features_list = []
+    for i, msg in enumerate(messages):
+        prev_msg = messages[i-1] if i > 0 else None
+        features_list.append(msg.extract_features(prev_msg))
+        
     features_tensor = torch.stack(features_list)
 
     sender_vectors = [msg.get_sender_vector() for msg in messages]
