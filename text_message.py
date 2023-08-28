@@ -34,7 +34,7 @@ class TextMessage(Message):
     def extract_features(self, prev_msg=None):
         """
         Extracts features from the message content using torch.
-        Features:
+        Features (note: with conversion to onehot, the number no longer corresponds to the feature's index in the feature vector, and it is too complicated to keep tracking):
         - Feature 1: Message length
         - Feature 2: Number of words
         - Feature 3: Sentiment Score (Polarity)
@@ -52,6 +52,8 @@ class TextMessage(Message):
         - Feature 15: Time since last message
         - Feature 16: Previous message more than 200 seconds ago
         """
+        num_senders = len(self.SENDER_ALIASES)
+
         # Feature 1: Extract message length
         message_length = len(self.content)
         
@@ -94,8 +96,9 @@ class TextMessage(Message):
         avg_word_length = sum(len(word) for word in words) / num_words if num_words > 0 else 0
 
         if prev_msg:
+            sender_onehot = torch.zeros(num_senders)
             # Feature 13: Previous sender
-            prev_sender = prev_msg.sender_idx
+            sender_onehot[prev_msg.sender_idx] = 1
             
             # Feature 14: Previous message was a question
             prev_msg_was_question = 1 if "?" in prev_msg.content else 0
@@ -106,12 +109,22 @@ class TextMessage(Message):
             # Feature 16: Previous message more than 20 seconds ago
             prev_msg_more_than_200s_ago = 1 if time_since_last_msg > 200 else 0
         else:
-            prev_sender = 0 # technically this is wrong, it assigns the first sender in the list if no previous message is provided, but that'll only happen for the first of the 56k messages
+            sender_onehot = torch.zeros(num_senders)
             prev_msg_was_question = 0
             time_since_last_msg = 0  # or a large arbitrary value if you prefer
             prev_msg_more_than_200s_ago = 0
 
-        self.features = torch.tensor([message_length, num_words, sentiment_score, has_url, has_number, message_hour, day_of_week, has_question, message_month, num_lowercase, lowercase_ratio, avg_word_length, prev_sender, prev_msg_was_question, time_since_last_msg, prev_msg_more_than_200s_ago])
+        days_onehot = torch.zeros(7)
+        days_onehot[day_of_week] = 1
 
+        month_onehot = torch.zeros(12)
+        month_onehot[message_month - 1] = 1  # -1 since month range is 1-12 and index is 0-based
+
+        self.features = torch.cat([
+            torch.tensor([message_length, num_words, sentiment_score, has_url, has_number, message_hour, has_question, num_lowercase, lowercase_ratio, avg_word_length, prev_msg_was_question, time_since_last_msg, prev_msg_more_than_200s_ago]),
+            sender_onehot,
+            days_onehot,
+            month_onehot
+        ])
         return self.features
     
