@@ -2,14 +2,19 @@ import torch
 from scipy.optimize import minimize
 from model import BaseModel
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import PolynomialFeatures
 
 class MultiClassLinearModel(BaseModel):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, include_interaction=False, degree=2):
         super().__init__()
         self.model_type = "MulticlassLinear"
         self.num_classes = num_classes
         # Instead of storing weights, store models for each class
         self.models = [LogisticRegression(max_iter=1000, C=100.0) for _ in range(num_classes)]
+        self.interaction = include_interaction
+        if self.interaction:
+            self.poly = PolynomialFeatures(degree=degree, interaction_only=True, include_bias=False)
+
 
     def _binary_train(self, train_data, train_labels):
         """
@@ -35,6 +40,10 @@ class MultiClassLinearModel(BaseModel):
         
         # Normalize the training data
         train_data = (train_data - self.feature_means) / self.feature_stds
+        
+        if self.interaction:
+            # Add interaction features
+            train_data = self.poly.fit_transform(train_data)
 
         for i in range(self.num_classes):
             # For each class, set labels to 1 for that class and 0 for all others
@@ -53,9 +62,13 @@ class MultiClassLinearModel(BaseModel):
         data = data.numpy().astype('float32')
         # Normalize data using the stored parameters
         data = (data - self.feature_means) / self.feature_stds
+
+        if self.interaction:
+            # Add interaction features
+            data = self.poly.transform(data)
         
         # Compute scores for each class using the trained models
         scores = [model.decision_function(data) for model in self.models]
         
-        # Convert scores to torch tensor and return the class with the highest score for each data point
+        # Convert scores to torch tensor and return tensor of predictions
         return torch.tensor(scores).T

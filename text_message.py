@@ -10,6 +10,9 @@ class TextMessage(Message):
         self.content = content
         self.message_type = "text"
 
+        self.features = None
+        self.onehot_label = None
+
     def __str__(self):
         est = timezone(timedelta(hours=-5))
         # Convert from milliseconds to seconds and then to a datetime object
@@ -26,10 +29,12 @@ class TextMessage(Message):
         Returns a one-hot encoded vector representing the sender using torch.
         """
         # Using torch for numerical operations
-        vector = torch.zeros(len(self.SENDER_ALIASES))
-        sender_index = self.SENDER_ALIASES.index(self.sender)
-        vector[sender_index] = 1
-        return vector
+        if self.onehot_label is None:
+            vector = torch.zeros(len(self.SENDER_ALIASES))
+            sender_index = self.SENDER_ALIASES.index(self.sender)
+            vector[sender_index] = 1
+            self.onehot_label = vector
+        return self.onehot_label
 
     def extract_features(self, prev_msg=None):
         """
@@ -52,6 +57,9 @@ class TextMessage(Message):
         - Feature 15: Time since last message
         - Feature 16: Previous message more than 200 seconds ago
         """
+        if self.features is not None: # if we've already extracted the features, don't extract them again
+            return self.features
+        
         num_senders = len(self.SENDER_ALIASES)
 
         # Feature 1: Extract message length
