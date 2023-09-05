@@ -1,6 +1,6 @@
 from data_load import *
 from classifier_evaluator import ClassifierEvaluator
-from most_frequent_classifier import MostFrequentClassClassifier
+from models.most_frequent_classifier import MostFrequentClassClassifier
 import dotenv
 import os
 import torch

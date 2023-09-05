@@ -1,6 +1,6 @@
 import torch
 from scipy.optimize import minimize
-from model import BaseModel
+from models.model import BaseModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import PolynomialFeatures
 

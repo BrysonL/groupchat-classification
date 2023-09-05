@@ -1,5 +1,5 @@
 import torch
-from model import BaseModel
+from models.model import BaseModel
 
 class MostFrequentClassClassifier(BaseModel):
     def __init__(self, num_classes):
